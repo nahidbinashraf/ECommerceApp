@@ -1,6 +1,9 @@
+using BackEnd.DataAccess;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,10 +34,20 @@ namespace BackEnd
             {
                 options.AddPolicy("EnableCORS", builder =>
                 {
-                    builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials().Build()
+                    builder.SetIsOriginAllowed(_ => true)
+                            .AllowAnyHeader().AllowAnyMethod().AllowCredentials().Build();
+
                 });
             });
 
+            //DB Connection
+            services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            // Identity Provides
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+
+            }).AddEntityFrameworkStores<ApplicationDBContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
