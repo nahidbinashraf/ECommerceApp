@@ -1,4 +1,6 @@
 using BackEnd.DataAccess;
+using BackEnd.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -8,9 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BackEnd
@@ -48,6 +52,32 @@ namespace BackEnd
                 options.Password.RequireDigit = false;
 
             }).AddEntityFrameworkStores<ApplicationDBContext>();
+
+            //Authentication
+            var appSettingSection = Configuration.GetSection("appSettings");
+            services.Configure<AppSettings>(appSettingSection);
+
+            var appSetting = appSettingSection.Get<AppSettings>();
+            var key = Encoding.ASCII.GetBytes(appSetting.Secret);
+
+            services.AddAuthentication(o =>
+           {
+               o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+               o.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+               o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+
+           }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
+           {
+               o.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidateIssuer = true,
+                   ValidateAudience = true,
+                   ValidateIssuerSigningKey = true,
+                   ValidIssuer = appSetting.Site,
+                   ValidAudience = appSetting.Audience,
+                   IssuerSigningKey = new SymmetricSecurityKey(key)
+               };
+           });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -60,8 +90,7 @@ namespace BackEnd
 
             app.UseCors();
             app.UseRouting();
-
-            app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
