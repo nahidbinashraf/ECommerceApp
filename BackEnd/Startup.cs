@@ -78,6 +78,12 @@ namespace BackEnd
                    IssuerSigningKey = new SymmetricSecurityKey(key)
                };
            });
+
+            //Authorization 
+            services.AddAuthorization(options => {
+                options.AddPolicy("IsLoggedIn", policy => policy.RequireRole("Admin", "Customer").RequireAuthenticatedUser());
+                options.AddPolicy("IsAdministrator", policy => policy.RequireRole("Admin").RequireAuthenticatedUser());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -91,6 +97,7 @@ namespace BackEnd
             app.UseCors();
             app.UseRouting();
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
