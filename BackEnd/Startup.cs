@@ -36,12 +36,14 @@ namespace BackEnd
             //Add CORS
             services.AddCors(options =>
             {
-                options.AddPolicy("EnableCORS", builder =>
-                {
-                    builder.SetIsOriginAllowed(_ => true)
-                            .AllowAnyHeader().AllowAnyMethod().AllowCredentials().Build();
+                options.AddDefaultPolicy(
+                   builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                //options.AddPolicy("EnableCORS", builder =>
+                //{
+                //    builder.SetIsOriginAllowed(_ => true)
+                //            .AllowAnyHeader().AllowAnyMethod().AllowCredentials().Build();
 
-                });
+                //});
             });
 
             //DB Connection
